@@ -1400,7 +1400,7 @@ static int smblib_dc_icl_vote_callback(struct votable *votable, void *data,
 	int rc = 0;
 	bool suspend;
 /* Yangfb@bsp support ec4016 wipower */
-	pr_info("dc icl set %d\n", icl_ua);
+	pr_debug("dc icl set %d\n", icl_ua);
 	if (icl_ua < 0) {
 		smblib_dbg(chg, PR_MISC, "No Voter hence suspending\n");
 		icl_ua = 0;
@@ -1461,7 +1461,7 @@ static int smblib_chg_disable_vote_callback(struct votable *votable, void *data,
 	int rc;
 
 /* david.liu@bsp, 20171023 Battery & Charging porting */
-	pr_err("set chg_disable=%d\n", chg_disable);
+	pr_debug("set chg_disable=%d\n", chg_disable);
 	rc = smblib_masked_write(chg, CHARGING_ENABLE_CMD_REG,
 				 CHARGING_ENABLE_CMD_BIT,
 				 chg_disable ? 0 : CHARGING_ENABLE_CMD_BIT);
@@ -2329,7 +2329,7 @@ int op_set_prop_otg_switch(struct smb_charger *chg,
 	if (chg->otg_switch == pre_otg_switch)
 		return rc;
 
-	pr_info("set otg_switch=%d\n", chg->otg_switch);
+	pr_debug("set otg_switch=%d\n", chg->otg_switch);
 	if (chg->otg_switch)
 		power_role = 0;
 	else
@@ -4159,7 +4159,7 @@ void smblib_usb_plugin_locked(struct smb_charger *chg)
 		if (!vbus_rising) {
 			rc = smblib_get_prop_usb_voltage_now(chg, &vbus_val);
 			if (rc < 0) {
-				pr_err("V  fail rc=%d\n", rc);
+				pr_debug("V  fail rc=%d\n", rc);
 			} else {
 				if (vbus_val.intval > 3000) {
 					pr_err("unplg,Vbus=%d",
@@ -5496,7 +5496,7 @@ static int get_property_from_fg(struct smb_charger *chg,
 		}
 		*val = ret.intval;
 	} else {
-		pr_err("no bms psy found\n");
+		pr_debug("no bms psy found\n");
 		return -EINVAL;
 	}
 
@@ -5566,7 +5566,7 @@ static bool op_get_fast_low_temp_full(struct smb_charger *chg)
 {
 	if (fast_charger && fast_charger->get_fast_low_temp_full)
 		return fast_charger->get_fast_low_temp_full();
-	pr_err("no fast_charger register found\n");
+	pr_debug("no fast_charger register found\n");
 	return false;
 }
 
@@ -5574,7 +5574,7 @@ static bool get_fastchg_firmware_updated_status(struct smb_charger *chg)
 {
 	if (fast_charger && fast_charger->get_fastchg_firmware_already_updated)
 		return fast_charger->get_fastchg_firmware_already_updated();
-	pr_err("no fast_charger register found\n");
+	pr_debug("no fast_charger register found\n");
 	return false;
 }
 
@@ -5582,7 +5582,7 @@ static bool get_prop_fast_switch_to_normal(struct smb_charger *chg)
 {
 	if (fast_charger && fast_charger->fast_switch_to_normal)
 		return fast_charger->fast_switch_to_normal();
-	pr_err("no fast_charger register found\n");
+	pr_debug("no fast_charger register found\n");
 	return false;
 }
 
@@ -5612,7 +5612,7 @@ bool is_fastchg_allowed(struct smb_charger *chg)
 
 	switch_to_normal = get_prop_fast_switch_to_normal(chg);
 	if (pre_switch_to_normal != switch_to_normal)
-		pr_info("switch_to_normal =%d\n", switch_to_normal);
+		pr_debug("switch_to_normal =%d\n", switch_to_normal);
 	if (switch_to_normal)
 		return false;
 
@@ -5762,7 +5762,7 @@ static int op_set_collapse_fet(struct smb_charger *chg, bool on)
 			USBIN_AICL_OPTIONS_CFG_REG, rc);
 		return rc;
 	}
-	pr_info("USBIN_AICL_OPTIONS_CFG_REG(0x%x)=0x%x\n",
+	pr_debug("USBIN_AICL_OPTIONS_CFG_REG(0x%x)=0x%x\n",
 		USBIN_AICL_OPTIONS_CFG_REG, stat);
 
 	rc = smblib_masked_write(chg, USBIN_LOAD_CFG_REG, BIT(0)
@@ -5847,7 +5847,7 @@ int get_prop_fast_adapter_update(struct smb_charger *chg)
 	if (fast_charger && fast_charger->get_adapter_update)
 		update_status = fast_charger->get_adapter_update();
 	else {
-		pr_err("no fast_charger register found\n");
+		pr_debug("no fast_charger register found\n");
 		update_status = ADAPTER_FW_UPDATE_NONE;
 	}
 	return update_status;
@@ -5861,7 +5861,7 @@ bool get_prop_fast_chg_started(struct smb_charger *chg)
 
 	if (fast_charger && fast_charger->fast_chg_started)
 		return fast_charger->fast_chg_started();
-	pr_err("no fast_charger register found\n");
+	pr_debug("no fast_charger register found\n");
 	return false;
 }
 
@@ -5869,7 +5869,7 @@ static bool set_prop_fast_switch_to_normal_false(struct smb_charger *chg)
 {
 	if (fast_charger && fast_charger->set_switch_to_noraml_false)
 		return fast_charger->set_switch_to_noraml_false();
-	pr_err("no fast_charger register found\n");
+	pr_debug("no fast_charger register found\n");
 	return false;
 }
 
@@ -5877,7 +5877,7 @@ bool op_get_fastchg_ing(struct smb_charger *chg)
 {
 	if (fast_charger && fast_charger->get_fast_chg_ing)
 		return fast_charger->get_fast_chg_ing();
-	pr_err("no fast_charger register found\n");
+	pr_debug("no fast_charger register found\n");
 	return false;
 }
 
@@ -5885,7 +5885,7 @@ bool op_set_fast_chg_allow(struct smb_charger *chg, bool enable)
 {
 	if (fast_charger && fast_charger->set_fast_chg_allow)
 		return fast_charger->set_fast_chg_allow(enable);
-	pr_err("no fast_charger register found\n");
+	pr_debug("no fast_charger register found\n");
 	return false;
 }
 
@@ -5893,14 +5893,14 @@ static void op_clean_enhache_status(void)
 {
 	if (fast_charger && fast_charger->clean_enhache)
 		return fast_charger->clean_enhache();
-	pr_err("no fast_charger register found\n");
+	pr_debug("no fast_charger register found\n");
 }
 
 static bool op_get_fast_chg_allow(struct smb_charger *chg)
 {
 	if (fast_charger && fast_charger->get_fast_chg_allow)
 		return fast_charger->get_fast_chg_allow();
-	pr_err("no fast_charger register found\n");
+	pr_debug("no fast_charger register found\n");
 	return false;
 }
 
@@ -5909,7 +5909,7 @@ static bool op_is_usb_switch_on(struct smb_charger *chg)
 	if (fast_charger && fast_charger->is_usb_switch_on)
 		return fast_charger->is_usb_switch_on();
 
-	pr_err("no fast_charger register found\n");
+	pr_debug("no fast_charger register found\n");
 	return false;
 }
 
@@ -5954,7 +5954,7 @@ static void set_usb_switch(struct smb_charger *chg, bool enable)
 	int retrger_time;
 
 	if (!fast_charger) {
-		pr_err("no fast_charger register found\n");
+		pr_debug("no fast_charger register found\n");
 		return;
 	}
 
@@ -5980,7 +5980,7 @@ static void set_usb_switch(struct smb_charger *chg, bool enable)
 			schedule_delayed_work(&chg->rechk_sw_dsh_work,
 					msecs_to_jiffies(retrger_time));
 	} else {
-		pr_err("switch off fastchg\n");
+		pr_debug("switch off fastchg\n");
 		usb_sw_gpio_set(0);
 		mcu_en_gpio_set(1);
 	}
@@ -6291,7 +6291,7 @@ static int get_prop_batt_capacity(struct smb_charger *chg)
 
 	rc = get_property_from_fg(chg, POWER_SUPPLY_PROP_CAPACITY, &capacity);
 	if (rc) {
-		pr_err("Couldn't get capacity rc=%d\n", rc);
+		pr_debug("Couldn't get capacity rc=%d\n", rc);
 		capacity = DEFAULT_BATT_CAPACITY;
 	}
 
@@ -6503,7 +6503,7 @@ static int handle_batt_temp_little_cold(struct smb_charger *chg)
 	temp_region = op_battery_temp_region_get(chg);
 	if (temp_region != BATT_TEMP_LITTLE_COLD
 			|| chg->is_power_changed || chg->recharge_pending) {
-		pr_err("triggered\n");
+		pr_debug("triggered\n");
 		chg->recharge_pending = false;
 		chg->is_power_changed = false;
 
@@ -6542,7 +6542,7 @@ static int handle_batt_temp_cool(struct smb_charger *chg)
 	temp_region = op_battery_temp_region_get(chg);
 	if (temp_region != BATT_TEMP_COOL
 			|| chg->is_power_changed || chg->recharge_pending) {
-		pr_err("triggered\n");
+		pr_debug("triggered\n");
 		chg->recharge_pending = false;
 		chg->is_power_changed = false;
 
@@ -6579,7 +6579,7 @@ static int handle_batt_temp_little_cool(struct smb_charger *chg)
 	temp_region = op_battery_temp_region_get(chg);
 	if (temp_region != BATT_TEMP_LITTLE_COOL
 			|| chg->is_power_changed || chg->recharge_pending) {
-		pr_err("triggered\n");
+		pr_debug("triggered\n");
 		chg->recharge_pending = false;
 		chg->is_power_changed = false;
 
@@ -6625,7 +6625,7 @@ static int handle_batt_temp_prenormal(struct smb_charger *chg)
 	temp_region = op_battery_temp_region_get(chg);
 	if (temp_region != BATT_TEMP_PRE_NORMAL
 			|| chg->is_power_changed || chg->recharge_pending) {
-		pr_err("triggered\n");
+		pr_debug("triggered\n");
 		chg->recharge_pending = false;
 		chg->is_power_changed = false;
 
@@ -6663,7 +6663,7 @@ static int handle_batt_temp_normal(struct smb_charger *chg)
 	temp_region = op_battery_temp_region_get(chg);
 	if ((temp_region != BATT_TEMP_NORMAL)
 			|| chg->is_power_changed || chg->recharge_pending) {
-		pr_err("triggered\n");
+		pr_debug("triggered\n");
 		chg->recharge_pending = false;
 		chg->is_power_changed = false;
 
@@ -6701,7 +6701,7 @@ static int handle_batt_temp_warm(struct smb_charger *chg)
 	temp_region = op_battery_temp_region_get(chg);
 	if ((temp_region != BATT_TEMP_WARM)
 			|| chg->is_power_changed || chg->recharge_pending) {
-		pr_err("triggered\n");
+		pr_debug("triggered\n");
 		chg->is_power_changed = false;
 		chg->recharge_pending = false;
 
@@ -6737,7 +6737,7 @@ static int handle_batt_temp_hot(struct smb_charger *chg)
 	temp_region = op_battery_temp_region_get(chg);
 	if ((temp_region != BATT_TEMP_HOT)
 			|| chg->is_power_changed) {
-		pr_err("triggered\n");
+		pr_debug("triggered\n");
 		chg->is_power_changed = false;
 		op_charging_en(chg, false);
 		op_battery_temp_region_set(chg, BATT_TEMP_HOT);
