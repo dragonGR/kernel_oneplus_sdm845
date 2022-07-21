@@ -24,6 +24,7 @@
  * as published by the Free Software Foundation.
  */
 
+#include "fpc1020_tee.h"
 #include <linux/atomic.h>
 #include <linux/delay.h>
 #include <linux/gpio.h>
@@ -66,8 +67,10 @@ struct fpc1020_data {
 
 	struct wakeup_source ttw_wl;
 	int irq_gpio;
+	atomic_t irq_enable;
 	int rst_gpio;
 	struct mutex lock; /* To set/get exported values in sysfs */
+	spinlock_t spinlock;
 	bool prepared;
 	atomic_t wakeup_enabled; /* Used both in ISR and non-ISR */
 	struct input_dev *input_dev;
@@ -337,6 +340,8 @@ static irqreturn_t fpc1020_irq_handler(int irq, void *handle)
 	return IRQ_HANDLED;
 }
 
+static struct fpc1020_data *fpc1020_g = NULL;
+
 static int fpc1020_request_named_gpio(struct fpc1020_data *fpc1020,
 	const char *label, int *gpio)
 {
@@ -358,6 +363,26 @@ static int fpc1020_request_named_gpio(struct fpc1020_data *fpc1020,
 	dev_dbg(dev, "%s %d\n", label, *gpio);
 
 	return 0;
+}
+
+static void fpc1020_enable(struct fpc1020_data *fpc1020)
+{
+	if(0 == atomic_read(&fpc1020->irq_enable))
+	{
+		if(fpc1020->irq_gpio)
+			enable_irq(gpio_to_irq(fpc1020->irq_gpio));
+		atomic_set(&fpc1020->irq_enable,1);
+	}
+}
+
+static void fpc1020_disable(struct fpc1020_data *fpc1020)
+{
+	if(1 == atomic_read(&fpc1020->irq_enable))
+	{
+		if(fpc1020->irq_gpio)
+			disable_irq_nosync(gpio_to_irq(fpc1020->irq_gpio));
+		atomic_set(&fpc1020->irq_enable,0);
+	}
 }
 
 static int fpc1020_probe(struct platform_device *pdev)
@@ -463,6 +488,7 @@ static int fpc1020_probe(struct platform_device *pdev)
 		goto exit;
 	}
 
+	atomic_set(&fpc1020->irq_enable,1);
 	dev_dbg(dev, "requested irq %d\n", gpio_to_irq(fpc1020->irq_gpio));
 
 	/* Request that the interrupt should be wakeable */
@@ -488,6 +514,21 @@ static int fpc1020_probe(struct platform_device *pdev)
 
 exit:
 	return rc;
+}
+
+void fpc1020_enable_global(bool enabled)
+{
+	if (fpc1020_g == NULL)
+		return;
+
+	spin_lock(&fpc1020_g->spinlock);
+
+	if (enabled)
+		fpc1020_enable(fpc1020_g);
+	else
+		fpc1020_disable(fpc1020_g);
+
+	spin_unlock(&fpc1020_g->spinlock);
 }
 
 static int fpc1020_remove(struct platform_device *pdev)
