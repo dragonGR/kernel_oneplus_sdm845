@@ -467,7 +467,7 @@ static int bq27541_chip_config(struct bq27541_device_info *di)
 	return 0;
 }
 
-static struct bq27541_device_info *bq27541_di;
+struct bq27541_device_info *bq27541_di;
 static struct i2c_client *new_client;
 
 #define TEN_PERCENT                            10
@@ -1176,7 +1176,7 @@ static struct external_battery_gauge bq27541_batt_gauge = {
 
 #define RESUME_SCHDULE_SOC_UPDATE_WORK_MS 60000
 
-static inline int is_usb_plugged(void)
+static int is_usb_pluged(void)
 {
 	static struct power_supply *psy;
 	union power_supply_propval ret = {0,};
@@ -1202,7 +1202,7 @@ static inline int is_usb_plugged(void)
 	return usb_present;
 }
 
-static inline bool is_dash_started(void)
+static bool get_dash_started(void)
 {
 	if (bq27541_di && bq27541_di->fastchg_started)
 		return bq27541_di->fastchg_started;
@@ -1233,17 +1233,13 @@ static int bq27541_temperature_thrshold_update(int temp)
 }
 static void update_battery_soc_work(struct work_struct *work)
 {
-	bool plugged, dash;
 	int schedule_time, vbat, temp;
 
-	plugged = is_usb_plugged();
-	dash = is_dash_started();
-
-	if (plugged || dash) {
+	if (is_usb_pluged() || get_dash_started()) {
 		schedule_delayed_work(
 				&bq27541_di->battery_soc_work,
 				msecs_to_jiffies(BATTERY_SOC_UPDATE_MS));
-		if (dash)
+		if (get_dash_started())
 			return;
 		if (bq27541_di->set_smoothing)
 			return;
@@ -1311,7 +1307,7 @@ static void bq_modify_soc_smooth_parameter(struct work_struct *work)
 
 	di = container_of(work, struct bq27541_device_info,
 			modify_soc_smooth_parameter.work);
-	if (is_dash_started())
+	if (get_dash_started())
 		return;
 	if (di->already_modify_smooth)
 		return;
